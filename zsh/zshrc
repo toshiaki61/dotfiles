@@ -1,0 +1,319 @@
+# -*- sh -*-
+## Environment variable configuration
+#
+# LANG
+#
+export LANG=ja_JP.UTF-8
+
+## Keybind configuration
+#
+# emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes 
+#   to end of it)
+#
+bindkey -e
+
+# auto change directory
+#
+setopt auto_cd
+
+# auto directory pushd that you can get dirs list by cd -[tab]
+#
+setopt auto_pushd
+
+# command correct edition before each completion attempt
+#
+setopt correct
+
+# compacked complete list display
+#
+setopt list_packed
+
+# no remove postfix slash of command line
+#
+setopt noautoremoveslash
+
+# no beep sound when complete list displayed
+#
+setopt nolistbeep
+setopt no_beep
+
+cdpath=(~)
+
+chpwd_functions=($chpwd_functions dirs)
+
+
+# historical backward/forward search with linehead string binded to ^P/^N
+#
+autoload history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+bindkey "^p" history-beginning-search-backward-end
+bindkey "^n" history-beginning-search-forward-end
+bindkey "\\ep" history-beginning-search-backward-end
+bindkey "\\en" history-beginning-search-forward-end
+
+
+# Command history configuration
+#
+HISTFILE=~/.zsh_history
+HISTSIZE=10000000
+SAVEHIST=$HISTSIZE
+setopt hist_ignore_dups
+setopt share_history
+setopt extended_history
+setopt hist_ignore_space
+setopt inc_append_history
+setopt no_flow_control
+
+
+# Prompt configuration
+#
+setopt prompt_subst
+setopt prompt_percent
+setopt transient_rprompt
+
+
+
+## バージョン管理システムの情報も表示する
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' formats \
+    '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}]'
+zstyle ':vcs_info:*' actionformats \
+    '(%{%F{white}%K{green}%}%s%{%f%k%})-[%{%F{white}%K{blue}%}%b%{%f%k%}|%{%F{white}%K{red}%}%a%{%f%k%}]'
+
+
+## Default shell configuration
+#
+# set prompt
+#
+autoload colors
+colors
+case ${UID} in
+0)
+    PROMPT="%B%{${fg[red]}%}%/#%{${reset_color}%}%b "
+    PROMPT2="%B%{${fg[red]}%}%_#%{${reset_color}%}%b "
+    SPROMPT="%B%{${fg[red]}%}%r is correct? [n,y,a,e]:%{${reset_color}%}%b "
+    [ -n "${REMOTEHOST}${SSH_CONNECTION}" ] && 
+        PROMPT="%{${fg[cyan]}%}$(echo ${HOST%%.*} | tr '[a-z]' '[A-Z]') ${PROMPT}"
+    ;;
+*)
+    PROMPT="%{${fg[red]}%}%/%%%{${reset_color}%} "
+    PROMPT2="%{${fg[red]}%}%_%%%{${reset_color}%} "
+    SPROMPT="%{${fg[red]}%}%r is correct? [n,y,a,e]:%{${reset_color}%} "
+    [ -n "${REMOTEHOST}${SSH_CONNECTION}" ] && 
+        PROMPT="%{${fg[cyan]}%}$(echo ${HOST%%.*} | tr '[a-z]' '[A-Z]') ${PROMPT}"
+    ;;
+esac
+
+
+
+## Completion configuration
+#
+fpath=(/usr/local/share/zsh-completions $fpath)
+fpath=(/usr/local/share/zsh/site-functions $fpath)
+fpath=(~/.zsh/functions/Completion(N-/) ${fpath})
+
+
+autoload -U compinit
+compinit
+
+
+## zsh editor
+#
+autoload zed
+
+
+## Prediction configuration
+#
+#utoload predict-on
+#redict-off
+
+## 補完方法毎にグループ化する。
+### 補完方法の表示方法
+###   %B...%b: 「...」を太字にする。
+###   %d: 補完方法のラベル
+zstyle ':completion:*' format '%B%d%b'
+zstyle ':completion:*' group-name ''
+
+## 補完侯補をメニューから選択する。
+### select=2: 補完候補を一覧から選択する。
+###           ただし、補完候補が2つ以上なければすぐに補完する。
+zstyle ':completion:*:default' menu select=2
+
+## 補完候補に色を付ける。
+### "": 空文字列はデフォルト値を使うという意味。
+zstyle ':completion:*:default' list-colors ""
+
+## 補完候補がなければより曖昧に候補を探す。
+### m:{a-z}={A-Z}: 小文字を大文字に変えたものでも補完する。
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+## 補完方法の設定。指定した順番に実行する。
+### _oldlist 前回の補完結果を再利用する。
+### _complete: 補完する。
+### _match: globを展開しないで候補の一覧から補完する。
+### _ignored: 補完候補にださないと指定したものも補完候補とする。
+### _approximate: 似ている補完候補も補完候補とする。
+### _prefix: カーソル以降を無視してカーソル位置までで補完する。
+zstyle ':completion:*' completer \
+    _oldlist _complete _match _ignored _approximate _prefix
+
+## 補完候補をキャッシュする。
+zstyle ':completion:*' use-cache yes
+## 詳細な情報を使う。
+zstyle ':completion:*' verbose yes
+## sudo時にはsudo用のパスも使う。
+zstyle ':completion:sudo:*' environ PATH="$SUDO_PATH:$PATH"
+
+
+## Alias configuration
+#
+# expand aliases before completing
+#
+# aliased ls needs if file/dir completions work
+setopt complete_aliases
+
+## カーソル位置で補完する。
+setopt complete_in_word
+## globを展開しないで候補の一覧から補完する。
+setopt glob_complete
+## 補完時にヒストリを自動的に展開する。
+setopt hist_expand
+## 補完候補がないときなどにビープ音を鳴らさない。
+setopt no_beep
+## 辞書順ではなく数字順に並べる。
+setopt numeric_glob_sort
+
+
+# 展開
+## --prefix=~/localというように「=」の後でも
+## 「~」や「=コマンド」などのファイル名展開を行う。
+setopt magic_equal_subst
+## 拡張globを有効にする。
+## glob中で「(#...)」という書式で指定する。
+setopt extended_glob
+## globでパスを生成したときに、パスがディレクトリだったら最後に「/」をつける。
+setopt mark_dirs
+
+
+# ジョブ
+## jobsでプロセスIDも出力する。
+setopt long_list_jobs
+
+
+# 実行時間
+## 実行したプロセスの消費時間が3秒以上かかったら
+## 自動的に消費時間の統計情報を表示する。
+REPORTTIME=3
+
+# ログイン・ログアウト
+## 全てのユーザのログイン・ログアウトを監視する。
+watch="all"
+## ログイン時にはすぐに表示する。
+log
+
+## ^Dでログアウトしないようにする。
+setopt ignore_eof
+
+
+# 単語
+## 「/」も単語区切りとみなす。
+WORDCHARS=${WORDCHARS:s,/,,}
+## 「|」も単語区切りとみなす。
+## 2011-09-19
+WORDCHARS="${WORDCHARS}|"
+
+
+# alias
+## ページャーを使いやすくする。
+### grep -r def *.rb L -> grep -r def *.rb |& lv
+alias -g L="|& $PAGER"
+## grepを使いやすくする。
+alias -g G='| grep'
+## 後はおまけ。
+alias -g H='| head'
+alias -g T='| tail'
+alias -g S='| sed'
+
+## 完全に削除。
+alias rr="command rm -rf"
+## ファイル操作を確認する。
+alias rm="rm -i"
+alias cp="cp -i"
+alias mv="mv -i"
+
+## pushd/popdのショートカット。
+alias pd="pushd"
+alias po="popd"
+
+
+alias where="command -v"
+alias j="jobs -l"
+
+if ls -G -w  > /dev/null 2>&1; then
+	alias ls="ls -G -w"
+elif ls --color > /dev/null 2>&1; then
+	alias ls="ls --color"
+fi
+
+
+alias la="ls -a"
+alias lf="ls -F"
+alias ll="ls -l"
+
+alias du="du -h"
+alias df="df -h"
+
+alias su="su -l"
+
+
+## terminal configuration
+#
+unset LSCOLORS
+case "${TERM}" in
+xterm)
+    export TERM=xterm-color
+    ;;
+kterm)
+    export TERM=kterm-color
+    # set BackSpace control character
+    stty erase
+    ;;
+cons25)
+    unset LANG
+    export LSCOLORS=ExFxCxdxBxegedabagacad
+    export LS_COLORS='di=01;34:ln=01;35:so=01;32:ex=01;31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+    zstyle ':completion:*' list-colors \
+        'di=;34;1' 'ln=;35;1' 'so=;32;1' 'ex=31;1' 'bd=46;34' 'cd=43;34'
+    ;;
+esac
+
+# set terminal title including current directory
+#
+case "${TERM}" in
+kterm*|xterm*)
+    precmd() {
+        echo -ne "\033]0;${USER}@${HOST%%.*}:${PWD}\007"
+    }
+    export LSCOLORS=exfxcxdxbxegedabagacad
+       export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+       zstyle ':completion:*' list-colors \
+           'di=34' 'ln=35' 'so=32' 'ex=31' 'bd=46;34' 'cd=43;34'
+       ;;
+esac
+
+
+# source auto-fu.zsh
+#
+if [ -f ~/.zsh/auto-fu.zsh ]; then
+    source ~/.zsh/auto-fu.zsh
+    function zle-line-init () {
+        auto-fu-init
+    }
+    zle -N zle-line-init
+    zstyle ':completion:*' completer _oldlist _complete
+fi
+
+## load user .zshrc configuration file
+#
+[ -f ~/.zshrc.mine ] && source ~/.zshrc.mine
