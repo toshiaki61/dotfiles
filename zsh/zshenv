@@ -10,6 +10,8 @@ typeset -U path
 ##            -: シンボリックリンク先のパスを評価。
 ##            /: ディレクトリのみ残す。
 path=(
+    # node
+    /usr/local/share/npm/bin(N-/)
     # brew
     /usr/local/bin(N-/)
     # brew ruby
@@ -24,7 +26,6 @@ path=(
     ## 2012-01-07
     $HOME/.gem/ruby/*/bin(N-/)
     # rbenv用
-    ## 2012-02-21
     $HOME/.rbenv/bin(N-/)
     # Debian GNU/Linux用
     /var/lib/gems/*/bin(N-/)
@@ -127,10 +128,11 @@ typeset -U pkg_config_path
 ###               globがマッチしなかったり存在しないパスを無視する。
 ###            -: シンボリックリンク先のパスを評価。
 ###            /: ディレクトリのみ残す。
-pkg_config_path=(# 自分用
-                 $HOME/local/lib/pkgconfig(N-/)
-                 # MacPorts用
-                 /opt/local/lib/pkgconfig(N-/))
+pkg_config_path=(
+    # 自分用
+    $HOME/local/lib/pkgconfig(N-/)
+    # MacPorts用
+    /opt/local/lib/pkgconfig(N-/))
 
 # ページャの設定
 if type lv > /dev/null 2>&1; then
@@ -154,14 +156,10 @@ fi
 
 # lessの設定
 ## -R: ANSIエスケープシーケンスのみ素通しする。
-## 2012-09-04
 export LESS="-R"
 
 # grepの設定
-## GNU grepがあったら優先して使う。
-if type ggrep > /dev/null 2>&1; then
-    alias grep=ggrep
-fi
+
 ## grepのバージョンを検出。
 grep_version="$(grep --version | head -n 1 | sed -e 's/^[^0-9.]*\([0-9.]*\)[^0-9.]*$/\1/')"
 ## デフォルトオプションの設定
@@ -196,13 +194,6 @@ fi
 if type ag > /dev/null 2>&1; then
     alias grep=ag
 fi
- 
-# sedの設定
-## GNU sedがあったら優先して使う。
-## 2012-03-04
-if type gsed > /dev/null 2>&1; then
-    alias sed=gsed
-fi
 
 # エディタの設定
 ## vimを使う。
@@ -220,11 +211,18 @@ fi
 ##               globがマッチしなかったり存在しないパスを無視する。
 ##            -: シンボリックリンク先のパスを評価。
 ##            .: 通常のファイルのみ残す。
-email_files=(~/.zsh.d/email(N-.)
-             ~/.email(N-.))
+email_files=(
+  ~/.zsh.d/email(N-.)
+  ~/.email(N-.))
 for email_file in ${email_files}; do
     export EMAIL=$(cat "$email_file")
     break
 done
+
+# nvm と指定されたバージョンの Node.js がインストール済みの場合だけ
+# 設定を有効にする
+if [[ -f ~/.nvm/nvm.sh ]]; then
+  source ~/.nvm/nvm.sh
+fi
 
 export M2_REPO=~/.m2/repository
